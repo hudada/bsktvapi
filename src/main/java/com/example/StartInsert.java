@@ -1,6 +1,7 @@
 package com.example;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,9 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.mp3.MP3AudioHeader;
+import org.jaudiotagger.audio.mp3.MP3File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -30,20 +34,21 @@ public class StartInsert implements CommandLineRunner {
 
 	@Override
 	public void run(String... arg0) throws Exception {
+		SimpleDateFormat format = new SimpleDateFormat("mm:ss");
+		String xx = format.format(195*1000);
 		File file = new File(location);
 		File[] files = file.listFiles();
 		for (File file2 : files) {
+			String aa = file2.getName();
+			long tt = file2.length();
 			try {  
-		        AudioFileFormat aff = AudioSystem.getAudioFileFormat(file2);  
-		        Map props = aff.properties();  
-		        long total = 0;
-				if (props.containsKey("duration")) {  
-		            total = (long) Math.round((((Long) props.get("duration")).longValue()) / 1000);  
-		        }  
-				long xx = total/1000;
-		    } catch (Exception e) {  
+		        MP3File f = (MP3File)AudioFileIO.read(file2);  
+		        MP3AudioHeader audioHeader = (MP3AudioHeader)f.getAudioHeader();  
+		        int ii = audioHeader.getTrackLength();
+		        System.out.println(audioHeader.getTrackLength());     
+		    } catch(Exception e) {  
 		        e.printStackTrace();  
-		    }  
+		    } 
 		}
 	}
 
