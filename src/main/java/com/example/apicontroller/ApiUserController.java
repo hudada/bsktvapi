@@ -66,6 +66,9 @@ public class ApiUserController {
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public BaseBean<List<SongBean>> getUser(@PathVariable String id) {
 		List<SongBean> list = songDao.findByUid(Long.parseLong(id));
+		for (SongBean songBean : list) {
+			songBean.setUname(userDao.findOne(songBean.getUid()).getUserName());
+		}
 		return ResultUtils.resultSucceed(list);
 	}
 	

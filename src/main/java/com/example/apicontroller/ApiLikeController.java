@@ -52,14 +52,37 @@ public class ApiLikeController {
 		bean.setUid(Long.parseLong(uid));
 		bean.setLikeUid(Long.parseLong(likeUid));
 		bean.setType(0);
-		return ResultUtils.resultSucceed(likeDao.save(bean));
+		likeDao.save(bean);
+		LikeBean bean1 = new LikeBean();
+		bean1.setUid(Long.parseLong(likeUid));
+		bean1.setLikeUid(Long.parseLong(uid));
+		bean1.setType(1);
+		likeDao.save(bean1);
+		return ResultUtils.resultSucceed("");
+	}
+	
+	@RequestMapping(value = "/find", method = RequestMethod.GET)
+	public BaseBean<LikeBean> find(HttpServletRequest request) {
+		String uid= request.getParameter("uid");
+		String likeUid= request.getParameter("likeUid");
+		LikeBean bean = likeDao.findByUidAndLikeUid(Long.parseLong(uid),
+				Long.parseLong(likeUid));
+		return ResultUtils.resultSucceed(bean);
 	}
 	
 	@RequestMapping(value = "/del", method = RequestMethod.POST)
 	public BaseBean<LikeBean> del(HttpServletRequest request) {
-		String id= request.getParameter("id");
-		likeDao.delete(Long.parseLong(id));
-		return ResultUtils.resultSucceed("");
+		String uid= request.getParameter("uid");
+		String likeUid= request.getParameter("likeUid");
+		try {
+			likeDao.delete(likeDao.findOneByUidAndLikeUid(Long.parseLong(uid),
+					Long.parseLong(likeUid), 0).getId());
+			likeDao.delete(likeDao.findOneByUidAndLikeUid(Long.parseLong(likeUid),
+					Long.parseLong(uid), 1).getId());
+			return ResultUtils.resultSucceed("");
+		}catch (Exception e) {
+			return ResultUtils.resultError("");
+		}
 	}
 
 	@RequestMapping(value = "/list", method = RequestMethod.POST)

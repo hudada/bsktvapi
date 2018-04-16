@@ -30,9 +30,11 @@ import com.example.bean.CommentBean;
 import com.example.bean.LikeBean;
 import com.example.bean.SongBean;
 import com.example.bean.UserBean;
+import com.example.bean.ZanBean;
 import com.example.dao.CommentDao;
 import com.example.dao.SongDao;
 import com.example.dao.UserDao;
+import com.example.dao.ZanDao;
 import com.example.utils.ResultUtils;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -48,6 +50,8 @@ public class ApiSongController {
 	private SongDao songDao;
 	@Autowired
 	private CommentDao commentDao;
+	@Autowired
+	private ZanDao zanDao;
 
 	@Value("${bs.mp3Path}")
 	private String location;
@@ -55,7 +59,8 @@ public class ApiSongController {
 	private ResourceLoader resourceLoader;
 
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
-	public BaseBean<SongBean> add(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+	public BaseBean<SongBean> add(@RequestParam("file") MultipartFile file, @RequestParam("file1") MultipartFile file1,
+			HttpServletRequest request) {
 
 		String uid = request.getParameter("uid");
 		String name = request.getParameter("name");
@@ -63,18 +68,22 @@ public class ApiSongController {
 		if (!file.isEmpty()) {
 			try {
 				String path = uid + "_" + System.currentTimeMillis() + "." + file.getOriginalFilename().split("\\.")[1];
+				String path1 = uid + "_" + System.currentTimeMillis() + "_back."
+						+ file1.getOriginalFilename().split("\\.")[1];
 
 				File root = new File(location);
 				if (!root.exists()) {
 					root.mkdirs();
 				}
 				Files.copy(file.getInputStream(), Paths.get(location, path));
+				Files.copy(file1.getInputStream(), Paths.get(location, path1));
 
 				SongBean bean = new SongBean();
 				bean.setUid(Long.parseLong(uid));
 				bean.setName(name);
 				bean.setLength(Long.parseLong(length));
 				bean.setAddr("/mp3list/" + path);
+				bean.setAddrBack("/mp3list/" + path1);
 				bean.setLikeSum(0);
 				return ResultUtils.resultSucceed(songDao.save(bean));
 			} catch (IOException | RuntimeException e) {
@@ -98,12 +107,20 @@ public class ApiSongController {
 	public BaseBean<SongBean> dolike(HttpServletRequest request) {
 		String id = request.getParameter("id");
 		int type = Integer.parseInt(request.getParameter("type"));
-		SongBean bean = songDao.findOne(Long.parseLong(id));
+		long sid = Long.parseLong(request.getParameter("sid"));
+		SongBean bean = songDao.findOne(sid);
 		int curr = bean.getLikeSum();
 		if (type > 0) {
-			bean.setLikeSum(curr++);
+			curr++;
+			bean.setLikeSum(curr);
+			ZanBean bean2 = new ZanBean();
+			bean2.setUid(Long.parseLong(id));
+			bean2.setSid(sid);
+			zanDao.save(bean2);
 		} else {
-			bean.setLikeSum(curr--);
+			zanDao.delete(zanDao.findById(sid, Long.parseLong(id)).getId());
+			curr--;
+			bean.setLikeSum(curr);
 		}
 		return ResultUtils.resultSucceed(songDao.save(bean));
 	}
@@ -115,6 +132,13 @@ public class ApiSongController {
 			commentBean.setUname(userDao.findOne(commentBean.getUid()).getUserName());
 		}
 		return ResultUtils.resultSucceed(list);
+	}
+
+	@RequestMapping(value = "/iszan", method = RequestMethod.GET)
+	public BaseBean<ZanBean> zan(HttpServletRequest request) {
+		String sid = request.getParameter("sid");
+		String uid = request.getParameter("uid");
+		return ResultUtils.resultSucceed(zanDao.findById(Long.parseLong(sid), Long.parseLong(uid)));
 	}
 
 	@RequestMapping(value = "/list", method = RequestMethod.GET)

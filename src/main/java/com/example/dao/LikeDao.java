@@ -15,4 +15,13 @@ public interface LikeDao extends JpaRepository<LikeBean, Long> {
 
 	@Query("from LikeBean b where b.uid=:uid and b.type=0")
     List<LikeBean> findByUid(@Param("uid") Long uid);
+	
+	@Query("from LikeBean b where b.uid=:uid and b.likeUid=:likeUid and b.type=0")
+	LikeBean findByUidAndLikeUid(@Param("uid") Long uid,
+			@Param("likeUid") Long likeUid);
+	
+	@Query("from LikeBean b where b.uid=:uid and b.likeUid=:likeUid and b.type=:type")
+	LikeBean findOneByUidAndLikeUid(@Param("uid") Long uid,
+			@Param("likeUid") Long likeUid,
+			@Param("type") int type);
 }

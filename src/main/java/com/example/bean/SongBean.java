@@ -17,10 +17,13 @@ public class SongBean {
 	private Long uid;
 	private String name;
 	private String addr;
+	private String addrBack;
 	private Long length;
 	private int likeSum;  //赞
 	@Transient
 	private String uname;
+	@Transient
+	private boolean isLike;
 	public Long getId() {
 		return id;
 	}
@@ -62,6 +65,18 @@ public class SongBean {
 	}
 	public void setUname(String uname) {
 		this.uname = uname;
+	}
+	public boolean isLike() {
+		return isLike;
+	}
+	public void setLike(boolean isLike) {
+		this.isLike = isLike;
+	}
+	public String getAddrBack() {
+		return addrBack;
+	}
+	public void setAddrBack(String addrBack) {
+		this.addrBack = addrBack;
 	}
 	
 }
